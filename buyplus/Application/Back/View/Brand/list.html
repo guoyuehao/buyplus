@@ -4,18 +4,11 @@
     <div class="page-header">
       <div class="container-fluid">
         <div class="pull-right">
-          <a href="" data-toggle="tooltip" title="新增" class="btn btn-primary">
+          <a href="{:U('add')}" data-toggle="tooltip" title="新增" class="btn btn-primary">
             <i class="fa fa-plus"></i>
-          </a>
-          <a href="" data-toggle="tooltip" title="重建" class="btn btn-default">
-            <i class="fa fa-refresh"></i>
           </a>
           <button type="button" data-toggle="tooltip" title="删除" class="btn btn-danger" onclick="confirm('确认？') ? $('#form-member').submit() : false;">
             <i class="fa fa-trash-o"></i>
-          </button>
-
-          <button type="button" data-toggle="tooltip" title="发送邮件" class="btn btn-primary" onclick="$('#input-type').val('email'); $('#form-member').submit();">
-            邮
           </button>
         </div>
         <h1>商品分类</h1>
@@ -38,6 +31,26 @@
           </h3>
         </div>
         <div class="panel-body">
+            <form action="{:U('list')}" method="get">
+                <div class="well">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="form-group">
+                                <label class="control-label" for="input-filter_title">品牌名称</label>
+                                <input name="filter_title" value="{$filter['filter_title']}" placeholder="品牌名称" id="input-filter_title" class="form-control" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row"><!-- div.row>div.col-sm-12 -->
+                        <div class="col-sm-12">
+                            <button type="submit" id="button-filter" class="btn btn-primary pull-right">
+                                <i class="fa fa-search"></i>
+                                筛选
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
           <form action="{:U('multi')}" method="post" enctype="multipart/form-data" id="form-member">
             <input type="hidden" name="type" value="" id="input-type">
 
@@ -49,10 +62,22 @@
                       <input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" />
                     </td>
                     <td class="text-left">
-                      <a href="" class="asc">会员</a>
+                      <a href="" class="asc">品牌名</a>
+                    </td>
+                    <td class="text-lift">
+                      <a href="">LOGO</a>
+                    </td>
+                    <td class="text-lift">
+                      <a href="">网址</a>
+                    </td> 
+                    <td class="text-right">
+                      <a href="">排序</a>
+                    </td>                    
+                    <td class="text-right">
+                      <a href="">添加时间</a>
                     </td>
                     <td class="text-right">
-                      <a href="">e-mail</a>
+                      <a href="">更新时间</a>
                     </td>
                     <td class="text-right">操作</td>
                   </tr>
@@ -64,9 +89,23 @@
                       <input type="checkbox" name="selected[]" value="{$row['member_id']}" />
                     </td>
                     <td class="text-left">
-                      {$row['nickname']}
+                      {$row['title']}
                     </td>
-                    <td class="text-right">{$row['email']}</td>
+                    <td class="text-left">
+                      {$row['logo']}
+                    </td>  
+                    <td class="text-left">
+                      {$row['site']}
+                    </td> 
+                    <td class="text-right">
+                      {$row['sort_number']}
+                    </td> 
+                    <td class="text-right">
+                      {$row['created_at']|date="Y-m-d H:i:s",###}
+                    </td>                      
+                    <td class="text-right">
+                        {$row['updated_at']|date="Y-m-d H:i:s",###}
+                    </td>
                     <td class="text-right">
 
                       <a href="" data-toggle="tooltip" title="编辑" class="btn btn-primary">
@@ -82,25 +121,9 @@
               </table>
             </div>
           </form>
-          <div class="row">
-            <div class="col-sm-6 text-left">
-              <ul class="pagination">
-                <li class="active">
-                  <span>1</span>
-                </li>
-                <li>
-                  <a href="">2</a>
-                </li>
-                <li>
-                  <a href="">&gt;</a>
-                </li>
-                <li>
-                  <a href="">&gt;|</a>
-                </li>
-              </ul>
-            </div>
-            <div class="col-sm-6 text-right">显示开始 1 到 20 之 23 （总 2 页）</div>
-          </div>
+        <div class="row">
+            {$pageHtml}
+        </div>
         </div>
       </div>
     </div>

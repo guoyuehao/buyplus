@@ -1,6 +1,8 @@
 <?php
 namespace Back\Controller;
 use Think\Controller;
+use Think\Page;
+
 
 class BrandController extends Controller
 {
@@ -26,6 +28,35 @@ class BrandController extends Controller
     }
     
     public function listAction() {
+        $model = M('Brand');
+        
+        //查询条件初始化
+        $cond = [];
+        $filter = [];   //记录查询到的数组用于分配
+        if(null !== $title = I('get.filter_title',null,'trim')){
+            $cond['title'] = ['like',$title.'%'];
+            $filter['filter_title'] = $title;
+        }
+        $this->assign('filter',$filter);
+        $pagesize = 3;
+        $total = $model->where($cond)->count();
+        $totalpage =  ceil($total/$pagesize);
+        $p = C('VAR_PAGE')?C('VAR_PAGE'):'p';
+        $page = I('get.'.$p,'1','intval');
+        if($page<1){
+            $page = 1;
+        }
+        if($page>$totalpage){
+            $page = $totalpage;
+        }
+        $model->page("$page,$pagesize");
+        $toolPage = new Page($total,$pagesize);
+        $toolPage->setConfig('header', '第%OFFSET%条记录到第%OFFSETS%条/共%TOTAL_ROW%条（共%TOTAL_PAGE%页）');      
+        $toolPage->setConfig('theme', '<div class="col-sm-6 text-left"><ul class="pagination">%FIRST% %UP_PAGE% %LINK_PAGE% %DOWN_PAGE% %END%</ul></div><div class="col-sm-6 text-right">%HEADER%</div>');
+        
+        $this->assign('pageHtml',$toolPage->show());        
+        $list = $model->where($cond)->select();
+        $this->assign('list',$list);
         $this->display();
     }
     

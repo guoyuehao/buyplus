@@ -12,8 +12,8 @@ class BrandModel extends Model
         ['sort_number','number','排序需要整数'],
     ];
     protected $_auto = [
-        ['create_at','time',self::MODEL_INSERT,'function'],
-        ['update_at','time',self::MODEL_BOTH,'function'],
+        ['created_at','time',self::MODEL_INSERT,'function'],
+        ['updated_at','time',self::MODEL_BOTH,'function'],
     ];
 }
 ?>
