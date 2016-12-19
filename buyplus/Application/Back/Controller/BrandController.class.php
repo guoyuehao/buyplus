@@ -38,7 +38,7 @@ class BrandController extends Controller
             $filter['filter_title'] = $title;
         }
         $this->assign('filter',$filter);
-        $pagesize = 3;
+        $pagesize = 1;
         $total = $model->where($cond)->count();
         $totalpage =  ceil($total/$pagesize);
         $p = C('VAR_PAGE')?C('VAR_PAGE'):'p';
