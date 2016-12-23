@@ -6,14 +6,14 @@ namespace Back\Controller;
 use Think\Controller;
 use Think\Page;
 
-class MemberController extends Controller
+class __CONTROLLER__Controller extends Controller
 {
 
     public function addAction()
     {
         if (IS_POST) {
 
-            $model = D('Member');
+            $model = D('__MODEL__');
             if ($model->create()) {// 校验
                 $model->add();// 添加
                 $this->redirect('list');// 重定向到列表动作
@@ -40,7 +40,7 @@ class MemberController extends Controller
     public function editAction()
     {
 
-        $model = D('Member');
+        $model = D('__MODEL__');
         if (IS_POST) {
             if ($model->create()) {// 校验
                 $model->save();// 更新
@@ -49,13 +49,13 @@ class MemberController extends Controller
                 // 将错误信息存储到session中, 便于下个页面输出错误消息
                 session('message', ['error'=>1, 'errorInfo'=>$model->getError()]);
                 session('data', $_POST);
-                $this->redirect('edit', ['member_id'=>I('post.member_id')]); // 重定向到添加
+                $this->redirect('edit', ['__PK_FIELD__'=>I('post.__PK_FIELD__')]); // 重定向到添加
            }
        } else {
            $this->assign('message', session('message'));
            session('message', null);// 删除该信息
            // 获取当前编辑的内容, 如果是编辑错误,则显示错误的内容, 如果是没有错误, 则显示原始数据内容
-           $this->assign('data', is_null(session('data')) ? $model->find(I('get.member_id')) : session('data'));
+           $this->assign('data', is_null(session('data')) ? $model->find(I('get.__PK_FIELD__')) : session('data'));
            session('data', null);
            // 展示
            $this->display('set');
@@ -65,7 +65,7 @@ class MemberController extends Controller
     public function listAction()
     {
 
-        $model = M('Member');
+        $model = M('__MODEL__');
 
         // 一: 查询条件
         $cond = [];// 初始化查询条件
@@ -140,8 +140,8 @@ class MemberController extends Controller
         $operate = 'delete';
         switch ($operate) {
             case 'delete':
-                $model = M('Member');
-                $model->where(['member_id'=>['in', I('post.selected')]])->delete();
+                $model = M('__MODEL__');
+                $model->where(['__PK_FIELD__'=>['in', I('post.selected')]])->delete();
                 break;
         }
         $this->redirect('list');

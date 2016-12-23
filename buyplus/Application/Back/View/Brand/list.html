@@ -52,8 +52,6 @@
                 </div>
             </form>
           <form action="{:U('multi')}" method="post" enctype="multipart/form-data" id="form-member">
-            <input type="hidden" name="type" value="" id="input-type">
-
             <div class="table-responsive">
               <table class="table table-bordered table-hover">
                 <thead>
@@ -62,7 +60,7 @@
                       <input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);" />
                     </td>
                     <td class="text-left">
-                      <a href="" class="asc">品牌名</a>
+                      <a href="{:UField('list',$sort,'title',$filter)}" class="{:CField($sort,$field)}">品牌名</a>
                     </td>
                     <td class="text-lift">
                       <a href="">LOGO</a>
@@ -71,13 +69,13 @@
                       <a href="">网址</a>
                     </td> 
                     <td class="text-right">
-                      <a href="">排序</a>
+                      <a href="{:UField('list',$sort,'sort_number',$filter)}" class="{:CField($sort,$field)}">排序</a>
                     </td>                    
                     <td class="text-right">
-                      <a href="">添加时间</a>
+                      <a href="{:UField('list',$sort,'created_at',$filter)}" class="{:CField($sort,$field)}">添加时间</a>
                     </td>
                     <td class="text-right">
-                      <a href="">更新时间</a>
+                      <a href="{:UField('list',$sort,'updated_at',$filter)}" class="{:CField($sort,$field)}">更新时间</a>
                     </td>
                     <td class="text-right">操作</td>
                   </tr>
@@ -86,13 +84,18 @@
                 <volist name="list" id="row">
                   <tr>
                     <td class="text-center">
-                      <input type="checkbox" name="selected[]" value="{$row['member_id']}" />
+                      <input type="checkbox" name="selected[]" value="{$row['brand_id']}" />
                     </td>
                     <td class="text-left">
                       {$row['title']}
                     </td>
                     <td class="text-left">
-                      {$row['logo']}
+                  <if condition="$row['logo']">
+                      <img src="__PUBLIC__/Thumb/{$row['logo']}" style="max-height: 50px;">
+                      <else />
+                      无图片
+                  </if>
+                        
                     </td>  
                     <td class="text-left">
                       {$row['site']}
@@ -108,7 +111,7 @@
                     </td>
                     <td class="text-right">
 
-                      <a href="" data-toggle="tooltip" title="编辑" class="btn btn-primary">
+                        <a href="{:U('edit',['brand_id'=>$row['brand_id']])}" data-toggle="tooltip" title="编辑" class="btn btn-primary">
                         <i class="fa fa-pencil"></i>
                       </a>
 

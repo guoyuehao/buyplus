@@ -8,6 +8,6 @@ class ShopController extends Controller
 {
     public function indexAction()
     {
-        echo 'Hello BuyPlus';
+        echo CC('shop_title');
     }
 }
