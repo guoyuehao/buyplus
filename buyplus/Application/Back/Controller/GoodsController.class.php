@@ -5,15 +5,17 @@ namespace Back\Controller;
 
 use Think\Controller;
 use Think\Page;
+use Think\Upload;
+use Think\Image;
 
-class __CONTROLLER__Controller extends Controller
+class GoodsController extends Controller
 {
 
     public function addAction()
     {
         if (IS_POST) {
 
-            $model = D('__MODEL__');
+            $model = D('Goods');
             if ($model->create()) {// 校验
                 $model->add();// 添加
                 $this->redirect('list');// 重定向到列表动作
@@ -29,7 +31,14 @@ class __CONTROLLER__Controller extends Controller
             session('message', null);// 删除该信息
             $this->assign('data', session('data'));
             session('data', null);
-
+            //获取相应数据
+            $this->assign('sku_list',M('Sku')->select());
+            $this->assign('tax_list', M('Tax')->select());
+            $this->assign('stock_status_list', M('StockStatus')->select());
+            $this->assign('length_unit_list', M('LengthUnit')->select());
+            $this->assign('weight_unit_list', M('WeightUnit')->select());
+            $this->assign('brand_list', M('Brand')->select());
+            $this->assign('category_list', D('Category')->getTreeList());
             $this->display('set');
         }
     }
@@ -40,7 +49,7 @@ class __CONTROLLER__Controller extends Controller
     public function editAction()
     {
 
-        $model = D('__MODEL__');
+        $model = D('Goods');
         if (IS_POST) {
             if ($model->create()) {// 校验
                 $model->save();// 更新
@@ -49,14 +58,22 @@ class __CONTROLLER__Controller extends Controller
                 // 将错误信息存储到session中, 便于下个页面输出错误消息
                 session('message', ['error'=>1, 'errorInfo'=>$model->getError()]);
                 session('data', $_POST);
-                $this->redirect('edit', ['__PK_FIELD__'=>I('post.__PK_FIELD__')]); // 重定向到添加
+                $this->redirect('edit', ['goods_id'=>I('post.goods_id')]); // 重定向到添加
            }
        } else {
            $this->assign('message', session('message'));
            session('message', null);// 删除该信息
            // 获取当前编辑的内容, 如果是编辑错误,则显示错误的内容, 如果是没有错误, 则显示原始数据内容
-           $this->assign('data', is_null(session('data')) ? $model->find(I('get.__PK_FIELD__')) : session('data'));
+           $this->assign('data', is_null(session('data')) ? $model->find(I('get.goods_id')) : session('data'));
            session('data', null);
+           // 获取对应的数据
+           $this->assign('sku_list', M('Sku')->select());
+           $this->assign('tax_list', M('Tax')->select());
+           $this->assign('stock_status_list', M('StockStatus')->select());
+           $this->assign('length_unit_list', M('LengthUnit')->select());
+           $this->assign('weight_unit_list', M('WeightUnit')->select());
+           $this->assign('brand_list', M('Brand')->select());
+           $this->assign('category_list', D('Category')->getTreeList());
            // 展示
            $this->display('set');
        }
@@ -65,7 +82,7 @@ class __CONTROLLER__Controller extends Controller
     public function listAction()
     {
 
-        $model = M('__MODEL__');
+        $model = M('Goods');
 
         // 一: 查询条件
         $cond = [];// 初始化查询条件
@@ -131,10 +148,36 @@ class __CONTROLLER__Controller extends Controller
         $operate = 'delete';
         switch ($operate) {
             case 'delete':
-                $model = M('__MODEL__');
-                $model->where(['__PK_FIELD__'=>['in', I('post.selected')]])->delete();
+                $model = M('Goods');
+                $model->where(['goods_id'=>['in', I('post.selected')]])->delete();
                 break;
         }
         $this->redirect('list');
+    }
+
+    public function ajaxAction(){
+        switch (I('request.operate','')) {
+            case 'imageUpload':
+                $toolUpload = new Upload();  
+                $toolUpload->exts = ['png','jpeg','jpg','gif'];
+                $toolUpload->maxSize = 1*1024*1024;
+                $toolUpload->rootPath = APP_PATH . 'Upload/';
+                $toolUpload->savePath = 'Goods/';
+                $uploadInfo = $toolUpload->uploadOne($_FILES['imageAjax']);
+                if ($uploadInfo) {
+                    $image = $uploadInfo['savepath'] . $uploadInfo['savename'];
+                    $toolImage = new Image();
+                    if (!is_dir('./Public/Thumb/' . $uploadInfo['savepath'])) {
+                        mkdir('./Public/Thumb/' . $uploadInfo['savepath'],0764,true);
+                    }
+                    $toolImage
+                    ->open(APP_PATH . 'Upload/' . $image)
+                    ->thumb(300,340)
+                    ->save('./Public/Thumb/' . $image);
+                    $this->ajaxReturn(['error'=>0,'imageAjax'=>['image'=>$image,'image_thumb'=>$image,'thumbUrl'=>$image]]);        
+                 } 
+                break;
+            
+        }
     }
 }

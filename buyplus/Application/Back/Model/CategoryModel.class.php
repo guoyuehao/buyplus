@@ -38,11 +38,11 @@ class CategoryModel extends Model
     public function getTreeList()
     {
         // 初始缓存配置
-        S([
-            'type' => 'Memcache',
-            'host'  => '192.168.153.128',
-            'port'  => '11211',
-        ]);
+        // S([
+        //     'type' => 'Memcache',
+        //     'host'  => '192.168.153.1',
+        //     'port'  => '11211',
+        // ]);
 
         if(! $tree = S('category_tree')) {
             // 缓存不存在

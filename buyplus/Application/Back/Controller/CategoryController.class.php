@@ -14,7 +14,7 @@ class CategoryController extends Controller
                 $model->add();
                 S([
                     'type' => 'Memcache',
-                    'host' => '192.168.153.128',
+                    'host' => '192.168.153.1',
                     'port' => '11211'
                 ]);
                 S('category_tree',null);
@@ -42,20 +42,20 @@ class CategoryController extends Controller
                 $model->save();
                 S([
                     'type' => 'Memcache',
-                    'host' => '192.168.153.128',
+                    'host' => '192.168.153.1',
                     'port' => '11211'
                 ]);
                 S('category_tree',null);
                 $this->redirect('list');
             }else{
-                session('message',['error'=>1,'erroeInfo'=>$model->getError()]);
+                session('message',['error'=>1,'errorInfo'=>$model->getError()]);
                 session('data',$_POST);
                 $this->redirect('edit',['category_id'=>I('post.category_id')]);
             }
         }else{
             $this->assign('message',  session('message'));
             session('message',null);
-            $this->assign('data', is_null(session('data'))?$model->find(I('post.category_id')):session('data'));
+            $this->assign('data', is_null(session('data'))?$model->find(I('get.category_id')):session('data'));
 
             session('data',null);
             $modelCategory = D('Category');
@@ -73,9 +73,9 @@ class CategoryController extends Controller
         $this->display();
     }
   
-    public function mutiAction(){
+    public function mutilAction(){
         $operate = I('post.operate',null);
-        
+
         $operate = 'delete';
         switch ($operate) {
             case 'delete':
@@ -84,10 +84,10 @@ class CategoryController extends Controller
 
                 S([
                     'type' => 'Memcache',
-                    'host' => '192.168.153.128',
+                    'host' => '192.168.153.1',
                     'port' => '11211'                   
                 ]);
-                S('category_id',null);
+                S('category_tree',null);
                 break;
         }
         $this->redirect('list');

@@ -26,16 +26,19 @@ class CodeController extends Controller
                 $fieldController = I('post.field');//获取字段列表
                 $tableTitle = session('crud.title');//获取对应展示标题
                 //生成控制器代码
-                $search = ['__CONTROLLER__','__MODEL__','__PK_FIELD__'];
-                $replace = [$controllerName,$modelName,$pkField];
                 $template = APP_PATH . 'Back/Code/controller.template';
                 $content = file_get_contents($template);
+                $search = ['__CONTROLLER__','__MODEL__','__PK_FIELD__'];
+                $replace = [$controllerName,$modelName,$pkField];
+                $content = str_replace($search,$replace,$content);
                 $controllerFile = APP_PATH . 'Back/Controller/' . $controllerName . 'Controller.class.php';
                 file_put_contents($controllerFile, $content);
                 echo '控制器文件：',$controllerName,'生成成功<br>';
                 //生成模型代码
                 $template = APP_PATH . 'Back/Code/model.template';
                 $content = file_get_contents($template);
+                $search = ['__CONTROLLER__','__MODEL__','__PK_FIELD__'];
+                $replace = [$controllerName,$modelName,$pkField];
                 $content = str_replace($search,$replace,$content);
                 $file = APP_PATH . 'Back/Model/' . $modelName . 'Model.class.php';
                 file_put_contents($file, $content);
@@ -88,7 +91,7 @@ class CodeController extends Controller
                 //替换set整体
                 $template = APP_PATH . 'Back/Code/setView.template';
                 $content = file_get_contents($template);
-                $search = ['__TITLE__','__FIELD_LIST__','__PK_FIELD'];
+                $search = ['__TITLE__','__FIELD_LIST__','__PK_FIELD__'];
                 $replace = [$tableTitle,$setFieldList,$pkField];
                 $content = str_replace($search, $replace, $content);
                 $path = APP_PATH . 'Back/View/' . $controllerName;

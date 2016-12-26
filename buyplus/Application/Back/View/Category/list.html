@@ -34,7 +34,7 @@
           </h3>
         </div>
         <div class="panel-body">
-          <form action="" method="post" enctype="multipart/form-data" id="form-category">
+          <form action="{:U('mutil')}" method="post" enctype="multipart/form-data" id="form-category">
             <div class="table-responsive">
               <table class="table table-bordered table-hover">
                 <thead>
@@ -68,7 +68,7 @@
                     </td>
                     <td class="text-right">{$row['sort_number']}</td>
                     <td class="text-right">
-                      <a href="{:U('edit', ['id'=>$row['category_id']])}" data-toggle="tooltip" title="编辑" class="btn btn-primary">
+                      <a href="{:U('edit', ['category_id'=>$row['category_id']])}" data-toggle="tooltip" title="编辑" class="btn btn-primary">
                         <i class="fa fa-pencil"></i>
                       </a>
 
