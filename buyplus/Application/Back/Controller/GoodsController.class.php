@@ -17,7 +17,15 @@ class GoodsController extends Controller
 
             $model = D('Goods');
             if ($model->create()) {// 校验
-                $model->add();// 添加
+                $goods_id = $model->add();// 添加
+                //添加相册数据
+                $modelGallery = M('Gallery');
+                $galleryList = [];
+                foreach (I('post.galleries') as $value) {
+                    $value['goods_id'] = $goods_id;
+                    $galleryList[] = $value;
+                }
+                $modelGallery->addAll($galleryList);
                 $this->redirect('list');// 重定向到列表动作
             } else {
                 // 将错误信息存储到session中, 便于下个页面输出错误消息
@@ -53,6 +61,18 @@ class GoodsController extends Controller
         if (IS_POST) {
             if ($model->create()) {// 校验
                 $model->save();// 更新
+                //判断添加或者更新相册
+                $modelGallery = M('Gallery');
+                $newGalleryList = [];
+                foreach (I('post.galleries') as $key => $value) {
+                    if (isset($value['gallery_id'])) {
+                        $modelGallery->save($value);
+                    }else{
+                        $value['goods_id'] = I('post.goods_id');
+                        $newGalleryList[] = $value;
+                    }
+                }
+                $modelGallery->addAll($newGalleryList);
                 $this->redirect('list');// 重定向到列表动作
             } else {
                 // 将错误信息存储到session中, 便于下个页面输出错误消息
@@ -74,6 +94,7 @@ class GoodsController extends Controller
            $this->assign('weight_unit_list', M('WeightUnit')->select());
            $this->assign('brand_list', M('Brand')->select());
            $this->assign('category_list', D('Category')->getTreeList());
+           $this->assign('gallery_list',M('Gallery')->where(['goods_id'=>I('get.goods_id')])->select());
            // 展示
            $this->display('set');
        }
@@ -177,7 +198,67 @@ class GoodsController extends Controller
                     $this->ajaxReturn(['error'=>0,'imageAjax'=>['image'=>$image,'image_thumb'=>$image,'thumbUrl'=>$image]]);        
                  } 
                 break;
-            
+                
+                case 'galleriesUpload':
+                $toolUpload = new Upload();  
+                $toolUpload->exts = ['png','jpeg','jpg','gif'];
+                $toolUpload->maxSize = 1*1024*1024;
+                $toolUpload->rootPath = APP_PATH . 'Upload/';
+                $toolUpload->savePath = 'Gallery/';
+                $uploadInfo = $toolUpload->uploadOne($_FILES['galleriesAjax']);
+                if ($uploadInfo) {
+                    $image = $uploadInfo['savepath'] . $uploadInfo['savename'];
+                    $toolImage = new Image();
+                    if (!is_dir('./Public/Thumb/' . $uploadInfo['savepath'])) {
+                        mkdir('./Public/Thumb/' . $uploadInfo['savepath'],0764,true);
+                    }
+                    $toolImage->open(APP_PATH . 'Upload/' . $image);
+                    $bigImage = $uploadInfo['savepath'] . 'big-' . $uploadInfo['savename'];  
+                    $toolImage->thumb(800,800,Image::IMAGE_THUMB_FILLED)->save('./Public/Thumb/' . $bigImage);  
+                    $mediumImage = $uploadInfo['savepath'] . 'medium-' . $uploadInfo['savename'];  
+                    $toolImage->thumb(300,300,Image::IMAGE_THUMB_FILLED)->save('./Public/Thumb/' . $mediumImage);
+                    $smallImage = $uploadInfo['savepath'] . 'small-' . $uploadInfo['savename'];  
+                    $toolImage->thumb(60,60,Image::IMAGE_THUMB_FILLED)->save('./Public/Thumb/' . $smallImage); 
+                    $this->ajaxReturn([
+                        'error'=>0, 
+                        'image'=>$image,
+                        'image_small'=>$smallImage,
+                        'image_medium'=>$mediumImage,
+                        'image_big'=>$bigImage,
+                        'key'=>strchr($uploadInfo['savename'],'.',true),
+                        'savepath'=>$uploadInfo['savepath'],
+                        'ext'=>strchr($uploadInfo['savename'],'.')
+                        ]);   
+                 } 
+                break;
+                case 'galleryRemove':
+                    $gallery_id = I('request.gallery_id', null);
+                    if (is_null($gallery_id)) {
+                        $image = I('request.key') . I('request.ext');
+                        $savepath = I('request.savepath');
+                    } else {
+                        // gallery_ID传递
+                        $imageLong = M('Gallery')->where(['gallery_id'=>$gallery_id])->getField('image');
+                        $image = substr($imageLong, strrpos($imageLong, '/')+1);
+                        $savepath = substr($imageLong, 0, strrpos($imageLong, '/')+1);
+
+                        // 删除记录
+                        M('Gallery')->delete($gallery_id);
+                    }
+                    @unlink(APP_PATH . 'Upload/' . I('request.savepath') . $image);
+                    @unlink('./Public/Thumb/' . I('request.savepath') . 'big-' . $image);
+                    @unlink('./Public/Thumb/' . I('request.savepath') . 'medium-' . $image);
+                    @unlink('./Public/Thumb/' . I('request.savepath') . 'small-' . $image);
+                    $this->ajaxReturn(['error'=>0]);
+                break;
+                case 'imageRemove':
+                $goods_id = I('post.goods_id');
+                $data = ['image'=>'','image_thumb'=>''];
+                M('Goods')->where(['goods_id'=>$goods_id])->setField($data);
+                @unlink(APP_PATH . 'Upload/' . I('request.savepath') . $image);
+                @unlink('./Public/Thumb/' . I('request.savepath') . $image);
+                $this->ajaxReturn(['error'=>0]);
+                break;
         }
     }
 }
