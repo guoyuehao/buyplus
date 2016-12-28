@@ -26,6 +26,7 @@ class GoodsController extends Controller
                     $galleryList[] = $value;
                 }
                 $modelGallery->addAll($galleryList);
+
                 $this->redirect('list');// 重定向到列表动作
             } else {
                 // 将错误信息存储到session中, 便于下个页面输出错误消息
@@ -47,6 +48,7 @@ class GoodsController extends Controller
             $this->assign('weight_unit_list', M('WeightUnit')->select());
             $this->assign('brand_list', M('Brand')->select());
             $this->assign('category_list', D('Category')->getTreeList());
+            $this->assign('type_list',M('Type')->select());
             $this->display('set');
         }
     }
@@ -73,6 +75,7 @@ class GoodsController extends Controller
                     }
                 }
                 $modelGallery->addAll($newGalleryList);
+
                 $this->redirect('list');// 重定向到列表动作
             } else {
                 // 将错误信息存储到session中, 便于下个页面输出错误消息
@@ -94,7 +97,10 @@ class GoodsController extends Controller
            $this->assign('weight_unit_list', M('WeightUnit')->select());
            $this->assign('brand_list', M('Brand')->select());
            $this->assign('category_list', D('Category')->getTreeList());
+           //处理相册
            $this->assign('gallery_list',M('Gallery')->where(['goods_id'=>I('get.goods_id')])->select());
+           $this->assign('type_list',M('Type')->select());
+        
            // 展示
            $this->display('set');
        }
@@ -164,9 +170,7 @@ class GoodsController extends Controller
 
         $operate = I('post.operate', null);
 
-
         // 先处理删除
-        $operate = 'delete';
         switch ($operate) {
             case 'delete':
                 $model = M('Goods');
@@ -178,6 +182,19 @@ class GoodsController extends Controller
 
     public function ajaxAction(){
         switch (I('request.operate','')) {
+            case 'getAttrList':
+                $rows = D('Attribute')
+                    ->alias('a')
+                    ->join('left join __ATTRIBUTE_TYPE__ at using(attribute_type_id)')
+                    ->relation(true)
+                    ->where(['type_id'=>I('request.type_id')])
+                    ->select();
+                if($rows){
+                    $this->ajaxReturn(['error'=>0,'rows'=>$rows]);
+                }else{
+                    $this->ajaxReturn(['error'=>1]);
+                }
+            break;
             case 'imageUpload':
                 $toolUpload = new Upload();  
                 $toolUpload->exts = ['png','jpeg','jpg','gif'];
@@ -197,9 +214,9 @@ class GoodsController extends Controller
                     ->save('./Public/Thumb/' . $image);
                     $this->ajaxReturn(['error'=>0,'imageAjax'=>['image'=>$image,'image_thumb'=>$image,'thumbUrl'=>$image]]);        
                  } 
-                break;
+            break;
                 
-                case 'galleriesUpload':
+            case 'galleriesUpload':
                 $toolUpload = new Upload();  
                 $toolUpload->exts = ['png','jpeg','jpg','gif'];
                 $toolUpload->maxSize = 1*1024*1024;
@@ -230,8 +247,8 @@ class GoodsController extends Controller
                         'ext'=>strchr($uploadInfo['savename'],'.')
                         ]);   
                  } 
-                break;
-                case 'galleryRemove':
+            break;
+            case 'galleryRemove':
                     $gallery_id = I('request.gallery_id', null);
                     if (is_null($gallery_id)) {
                         $image = I('request.key') . I('request.ext');
@@ -250,15 +267,16 @@ class GoodsController extends Controller
                     @unlink('./Public/Thumb/' . I('request.savepath') . 'medium-' . $image);
                     @unlink('./Public/Thumb/' . I('request.savepath') . 'small-' . $image);
                     $this->ajaxReturn(['error'=>0]);
-                break;
-                case 'imageRemove':
+            break;
+            case 'imageRemove':
                 $goods_id = I('post.goods_id');
                 $data = ['image'=>'','image_thumb'=>''];
                 M('Goods')->where(['goods_id'=>$goods_id])->setField($data);
                 @unlink(APP_PATH . 'Upload/' . I('request.savepath') . $image);
                 @unlink('./Public/Thumb/' . I('request.savepath') . $image);
                 $this->ajaxReturn(['error'=>0]);
-                break;
+            break;
+            
         }
     }
 }

@@ -23,7 +23,7 @@ class CodeController extends Controller
                 //生成控制器和模型名
                 $controllerName = $modelName = implode(array_map('ucfirst', explode('_', $model->getModelName())));
                 $pkField = $model->getPK();//获取主键
-                $fieldController = I('post.field');//获取字段列表
+                $fieldCollection = I('post.field');//获取字段列表
                 $tableTitle = session('crud.title');//获取对应展示标题
                 //生成控制器代码
                 $template = APP_PATH . 'Back/Code/controller.template';
@@ -46,9 +46,10 @@ class CodeController extends Controller
                 //生成视图代码
                 //生成字段列表
                 $theadTdList = $tbodyTdList = $setFieldList =  '';
-                foreach ($fieldConertoller as $field => $option){
+                foreach ($fieldCollection as $field => $option){
+
                     $search = ['__FIELD__','__FIELD_TITLE__'];
-                    $replace = [$field,$option['title']!==''?$option['title']:$field];       
+                    $replace = [$field,$option['title'] !== '' ? $option['title'] : $field];       
                     //判断是否选择显示
                     if (isset($option['is_list'])){
                         //判断是否做排序
@@ -69,10 +70,12 @@ class CodeController extends Controller
                     //为set模版生成字段
                     if(isset($option['is_set'])){
                         if($field == $pkField) continue;
-                        $template = APP_PATH . 'Back/Code/setFiledView.template';
+                        $template = APP_PATH . 'Back/Code/setFieldView.template';
                         $content = file_get_contents($template);
-                        $content = str_repeat($search, $replace,$content);
+
+                        $content = str_replace($search, $replace,$content);
                         $setFieldList .= $content;
+                        
                     }
                 }
                 //替换list整体

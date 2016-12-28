@@ -407,6 +407,21 @@
                                 
 
                             <div class="tab-pane active" id="tab-attribute">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label" for="input-type_id">商品类型</label>
+                                        <div class="col-sm-1 text-center control-label">选项</div>
+                                        <div class="col-sm-9">
+                                            <select name="type_id" id="input-type_id" class="form-control">
+                                                <option value="0">请选择类型</option>
+                                                <volist name="type_list" id="type">
+                                                    <option value="{$type['type_id']}" <if condition="$data['type_id'] eq $type['type_id']">selected</if> >{$type['type_title']}</option>
+                                                </volist>
+                                            </select>
+                                            <if condition="isset($message['errorInfo']['type_id'])">
+                                                <label for="input-type_id" class="text-danger">{$message['errorInfo']['type_id']}</label>
+                                            </if>
+                                        </div>
+                                </div>
                             </div>
 
 
@@ -508,7 +523,7 @@
         console.log($(this).data());
         var image = $(this).parent();
         image.empty();
-        var url = "{:U('ajax',['operate'=>imageRemove])}";
+        var url = "{:U('ajax',['operate'=>'imageRemove'])}";
         var data = {
             goods_id: $(this).data('goods_id'),
             savepath: $(this).data('savepath')
@@ -516,5 +531,51 @@
         $.post(url,data, function(res) {});
     });
 
+    </script>
+    <script>
+    $(function(){
+        $('#input-type_id').change(function(event) {
+            var url = "{:U('ajax',['operate'=>'getAttrList'])}";
+            var data = {type_id:$(this).val()};
+            $.get(url,data,function(res){
+                if(res.error != 0){
+                    console.log(res.errorInfo);
+                    return;
+                }
+                var fieldHtml = '';
+                $.each(res.rows,function(i,row){
+                    fieldHtml += '<div class="form-group">';
+                    fieldHtml += '<label class="col-sm-2 control-label" for="input-attribute">' + row.attribute_title + '</label>';
+                    fieldHtml += '<div class="col-sm-1 text-center"><label class="control-label"><input name="is_option[]" value="'+row.attribute_id+'" class="form-control" type="checkbox"></label></div>';
+                    switch(row.attribute_type_title){
+                        case 'text':
+                                fieldHtml += '<div class="col-sm-9"><input name="attribute['+row.attribute_id+']" value="" placeholder="属性值" id="input-attribute-'+row.attribute_id+'" class="form-control" type="text"></div>';
+                        break;
+                        case 'select':
+                        case 'select-multi':
+                            fieldHtml += '<div class="col-sm-9"><select name="attribute['+row.attribute_id+']';
+                                if (row.attribute_type_title == 'select-multi') {
+                                    fieldHtml += '[]';
+                                }
+                                fieldHtml +='" id="input-attribute-'+row.attribute_id+'" class="form-control"';
+                                if (row.attribute_type_title == 'select-multi') {
+                                    fieldHtml += ' multiple';
+                                }
+                                fieldHtml += '>';
+                                $.each(row.optionList, function(ii, option) {
+                                    fieldHtml += '<option value="'+option.attribute_option_id + '">' + option.option_value + '</option>';
+                                });
+                                fieldHtml += '</select></div>';
+                        break;
+
+                    }
+                    fieldHtml += '</div>';
+                });
+                $('#tab-attribute>div.form-group:gt(0)').remove();
+                $('#tab-attribute').append(fieldHtml);
+
+            },'json');
+        });
+    });
     </script>
 </block>
