@@ -14,7 +14,6 @@ class GoodsController extends Controller
     public function addAction()
     {
         if (IS_POST) {
-
             $model = D('Goods');
             if ($model->create()) {// 校验
                 $goods_id = $model->add();// 添加
@@ -26,6 +25,59 @@ class GoodsController extends Controller
                     $galleryList[] = $value;
                 }
                 $modelGallery->addAll($galleryList);
+
+                $modelAttribute = M('Attribute');
+                $modelAttributeType =M('AttributeType');
+                $modelGoodsAttribute = M('GoodsAttribute');
+                $modelGoodsAttributeOption = M('GoodsAttributeOption');
+                foreach (I('post.attribute',[]) as $attribute_id => $value) {
+                    $attribute_type_id = $modelAttribute->where(['attribute_id'=>$attribute_id])->getField('attribute_type_id');
+                    $attributeType = $modelAttributeType->where(['attribute_type_id'=>$attribute_type_id])->getField('attribute_type_title');
+                    switch ($attributeType) {
+                        case 'text':
+                            $data = [
+                                'goods_id' => $goods_id,
+                                'attribute_id' => $attribute_id,
+                                'value' => $value
+                            ];
+                            if ($modelGoodsAttribute->create($data)) {
+                                $modelGoodsAttribute->add();
+                            }
+                            break;
+                        
+                        case 'select':
+                            $data = [
+                                'goods_id' => $goods_id,
+                                'attribute_id' => $attribute_id
+                            ];
+                            if ($modelGoodsAttribute->create($data)) {
+                                $goods_attribute_id = $modelGoodsAttribute->add();
+                                $data = [
+                                    'goods_attribute_id' => $goods_attribute_id,
+                                    'attribute_option_id' => $value
+                                ];
+                                $modelGoodsAttributeOption->add($data);
+                            }
+                            break;
+                        case 'select-multi':
+                            $data = [
+                                'goods_id' => $goods_id,
+                                'attribute_id' => $attribute_id
+                            ];
+                            if ($modelGoodsAttribute->create($data)) {
+                                $goods_attribute_id = $modelGoodsAttribute->add();
+                                $rows = array_map(function($v) use ($goods_attribute_id) {
+                                    return [
+                                    'goods_attribute_id' => $goods_attribute_id,
+                                    'attribute_option_id' => $v
+                                    ];
+                                }, $value);
+                                $modelGoodsAttributeOption->addAll($rows);
+                            }
+                            break;
+                    }
+                }
+
 
                 $this->redirect('list');// 重定向到列表动作
             } else {
@@ -75,6 +127,64 @@ class GoodsController extends Controller
                     }
                 }
                 $modelGallery->addAll($newGalleryList);
+                //处理商品属性
+                $goods_id = I('post.goods_id');
+                $modelAttribute = M('Attribute');
+                $modelAttributeType =M('AttributeType');
+                $modelGoodsAttribute = M('GoodsAttribute');
+                $modelGoodsAttributeOption = M('GoodsAttributeOption');
+                //删除所有属性
+                $modelGoodsAttributeOption->where([
+                    'goods_attribute_id' => ['in', $modelGoodsAttribute->where(['goods_id'=>$goods_id])->getField('goods_attribute_id', true)]
+                    ])->delete();
+                $modelGoodsAttribute->where(['goods_id'=>$goods_id])->delete();
+                foreach (I('post.attribute',[]) as $attribute_id => $value) {
+                    $attribute_type_id = $modelAttribute->where(['attribute_id'=>$attribute_id])->getField('attribute_type_id');
+                    $attributeType = $modelAttributeType->where(['attribute_type_id'=>$attribute_type_id])->getField('attribute_type_title');
+                    switch ($attributeType) {
+                        case 'text':
+                            $data = [
+                                'goods_id' => $goods_id,
+                                'attribute_id' => $attribute_id,
+                                'value' => $value
+                            ];
+                            if ($modelGoodsAttribute->create($data)) {
+                                $modelGoodsAttribute->add();
+                            }
+                            break;
+                        
+                        case 'select':
+                            $data = [
+                                'goods_id' => $goods_id,
+                                'attribute_id' => $attribute_id
+                            ];
+                            if ($modelGoodsAttribute->create($data)) {
+                                $goods_attribute_id = $modelGoodsAttribute->add();
+                                $data = [
+                                    'goods_attribute_id' => $goods_attribute_id,
+                                    'attribute_option_id' => $value
+                                ];
+                                $modelGoodsAttributeOption->add($data);
+                            }
+                            break;
+                        case 'select-multi':
+                            $data = [
+                                'goods_id' => $goods_id,
+                                'attribute_id' => $attribute_id
+                            ];
+                            if ($modelGoodsAttribute->create($data)) {
+                                $goods_attribute_id = $modelGoodsAttribute->add();
+                                $rows = array_map(function($v) use ($goods_attribute_id) {
+                                    return [
+                                    'goods_attribute_id' => $goods_attribute_id,
+                                    'attribute_option_id' => $v
+                                    ];
+                                }, $value);
+                                $modelGoodsAttributeOption->addAll($rows);
+                            }
+                            break;
+                        }
+                    }        
 
                 $this->redirect('list');// 重定向到列表动作
             } else {
@@ -87,7 +197,8 @@ class GoodsController extends Controller
            $this->assign('message', session('message'));
            session('message', null);// 删除该信息
            // 获取当前编辑的内容, 如果是编辑错误,则显示错误的内容, 如果是没有错误, 则显示原始数据内容
-           $this->assign('data', is_null(session('data')) ? $model->find(I('get.goods_id')) : session('data'));
+           $data = is_null(session('data')) ? $model->find(I('get.goods_id')) : session('data');
+           $this->assign('data', $data);
            session('data', null);
            // 获取对应的数据
            $this->assign('sku_list', M('Sku')->select());
@@ -100,7 +211,24 @@ class GoodsController extends Controller
            //处理相册
            $this->assign('gallery_list',M('Gallery')->where(['goods_id'=>I('get.goods_id')])->select());
            $this->assign('type_list',M('Type')->select());
-        
+            
+            //展示商品类型属性
+            $attribute_list = D('Attribute')->alias('a')->join('left join __ATTRIBUTE_TYPE__ at using(attribute_type_id)')->relation(true)->where(['type_id'=>$data['type_id']])->select();
+            $goods_attribute_list = D('GoodsAttribute')->alias('ga')->relation(true)->where(['goods_id'=>$data['goods_id']])->select();
+            $attribute_merge_list = [];
+            foreach ($attribute_list as $attribute) {
+                foreach ($goods_attribute_list as $goods_attribute) {
+                    if ($attribute['attribute_id'] == $goods_attribute['attribute_id']) {
+                        $goods_attribute['checked_list'] = array_map(function($v){
+                            return $v['attribute_option_id'];
+                        },$goods_attribute['goodsOptionList']);
+                        $attribute_merge_list[$attribute['attribute_id']] = array_merge($attribute,$goods_attribute);
+                        break;
+                    }
+                }
+            }
+            $this->assign('attribute_merge_list',$attribute_merge_list);
+            // dump($goods_attribute_list);die;
            // 展示
            $this->display('set');
        }
@@ -167,8 +295,8 @@ class GoodsController extends Controller
      */
     public function multiAction()
     {
-
-        $operate = I('post.operate', null);
+        // dump($_POST);die;
+        $operate = I('post.operate', 'delete');
 
         // 先处理删除
         switch ($operate) {
