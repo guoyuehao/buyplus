@@ -12,7 +12,19 @@ return array(
 
         'register'  => 'Member/register', // 路由到用户的注册动作
         'login'     => 'Member/login',// 登录
-        'center'    => 'Member/center'
+        'center'    => 'Member/center',
+
+        'category/nestedList' => ['Shop/category',['operate' => 'nestedList']],
+        'goods/new' => ['Shop/goods',['operate'=>'new']],
+        'goods/special' => ['Shop/goods',['operate'=>'special']],
+        'goods/promote' => ['Shop/goods',['operate'=>'promote']],
+        'show/:goods_id' => 'Shop/show',
+        'goods/show' => ['Shop/goods', ['operate'=>'show']],
+        'breadcrumb'   => 'Shop/breadcrumb',
+        'addToCart' => 'Buy/addToCart',
+        'removeFromCart'     => 'Buy/removeFromCart',
+        'cartInfo'      => 'Buy/cartInfo',
+
     ],
     'URL_MODEL' => 2, // URL模式
 

@@ -69,7 +69,6 @@ class CategoryController extends Controller
         $modelCategory = D('Category');
 
         $this->assign('list', $modelCategory->getTreeList());
-
         $this->display();
     }
   

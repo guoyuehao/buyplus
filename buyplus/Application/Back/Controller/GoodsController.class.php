@@ -62,7 +62,8 @@ class GoodsController extends Controller
                         case 'select-multi':
                             $data = [
                                 'goods_id' => $goods_id,
-                                'attribute_id' => $attribute_id
+                                'attribute_id' => $attribute_id,
+                                'product_option' => in_array($attribute_id, I('post.is_option',[]))?1:0
                             ];
                             if ($modelGoodsAttribute->create($data)) {
                                 $goods_attribute_id = $modelGoodsAttribute->add();
@@ -170,7 +171,8 @@ class GoodsController extends Controller
                         case 'select-multi':
                             $data = [
                                 'goods_id' => $goods_id,
-                                'attribute_id' => $attribute_id
+                                'attribute_id' => $attribute_id,
+                                'product_option' => in_array($attribute_id, I('post.is_option',[]))?1:0
                             ];
                             if ($modelGoodsAttribute->create($data)) {
                                 $goods_attribute_id = $modelGoodsAttribute->add();
@@ -310,6 +312,16 @@ class GoodsController extends Controller
 
     public function ajaxAction(){
         switch (I('request.operate','')) {
+            case 'delProduct':
+                M('Product')->where(['product_id'=>I('request.product_id')])->delete();
+                M('ProductGoodsAttributeOption')->where(['product_id'=>I('request.product_id')])->delete();
+            break;
+            case 'saveProduct':
+                $data = (array)I('request.');
+                $data['promoted'] = isset($data['promoted'])?$data['promoted']:0;
+                $data['enabled'] = isset($data['enabled'])?$data['enabled']:0;
+                M('Product')->save($data);
+            break;
             case 'getAttrList':
                 $rows = D('Attribute')
                     ->alias('a')
@@ -338,7 +350,7 @@ class GoodsController extends Controller
                     }
                     $toolImage
                     ->open(APP_PATH . 'Upload/' . $image)
-                    ->thumb(300,340)
+                    ->thumb(300,340,6)
                     ->save('./Public/Thumb/' . $image);
                     $this->ajaxReturn(['error'=>0,'imageAjax'=>['image'=>$image,'image_thumb'=>$image,'thumbUrl'=>$image]]);        
                  } 
@@ -404,7 +416,52 @@ class GoodsController extends Controller
                 @unlink('./Public/Thumb/' . I('request.savepath') . $image);
                 $this->ajaxReturn(['error'=>0]);
             break;
-            
+            case 'addProduct':
+                $modelProduct =M('Product');
+                $product_id = $modelProduct->add(I('request.'));
+                $modelPGAO = M('ProductGoodsAttributeOption');
+                $rows = array_map(function($goods_attribute_option_id) use($product_id){
+                    return [
+                    'product_id'=>$product_id,
+                    'goods_attribute_option_id'=>$goods_attribute_option_id
+                    ];
+                },I('request.option',[]));
+                $modelPGAO->addAll($rows);
+                //product_row页面数据
+                $product['product_id'] = $product_id;
+                $product = array_merge($product,I('request.'));
+                $modelGAO = M('GoodsAttributeOption');
+                foreach ($product['option'] as $goods_attribute_option_id) {
+                    $row = $modelGAO->join('left join __ATTRIBUTE_OPTION__ using(attribute_option_id)')->find($goods_attribute_option_id);
+                    $product['optionList'][] = $row;
+                }
+                $this->assign('product',$product);
+                $this->assign('priceDriftList',M('PriceDrift')->select());
+                $this->display('product_row');
+            break;
         }
+    }
+    public function productAction(){
+        $goods_id = I('get.goods_id');
+        $modelGoodsAttribute = M('GoodsAttribute');
+        $optionList = $modelGoodsAttribute->alias('ga')->join('left join __ATTRIBUTE__ a using(attribute_id)')->where(['goods_id'=>$goods_id,'product_option'=>'1'])->select();
+        
+        $modelGoodsAttributeOption = M('GoodsAttributeOption');
+        foreach ($optionList as $key => $option) {
+            $valueList = $modelGoodsAttributeOption->alias('gao')->join('left join __ATTRIBUTE_OPTION__ ao using(attribute_option_id)')->where(['goods_attribute_id'=>$option['goods_attribute_id']])->select();
+            $optionList[$key]['valuelist'] = $valueList;
+        }
+        $this->assign('optionList',$optionList);
+        $this->assign('priceDriftList',M('priceDrift')->select());
+        $this->assign('goods_id',I('get.goods_id'));
+        //已有货品列表
+        $productList= M('Product')->where(['goods_id'=>I('get.goods_id')])->select();
+        foreach ($productList as $key => $product) {
+            $rows = M('ProductGoodsAttributeOption')->join('left join __GOODS_ATTRIBUTE_OPTION__ using(goods_attribute_option_id)')->join('left join __ATTRIBUTE_OPTION__ using(attribute_option_id)')->where(['product_id'=>$product['product_id']])->select();
+            $productList[$key]['optionList'] = $rows;
+        }
+        // dump($rows );die;
+        $this->assign('productList',$productList);
+        $this->display();
     }
 }

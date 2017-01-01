@@ -99,6 +99,7 @@
                                     
 
                                     <td class="text-right">操作</td>
+                                    <td class="text-right">货品</td>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -148,6 +149,11 @@
                                         <td class="text-right">
                                             <a href="{:U('edit', ['goods_id'=>$row['goods_id']])}" data-toggle="tooltip" title="编辑" class="btn btn-primary">
                                                 <i class="fa fa-pencil"></i>
+                                            </a>
+                                        </td>
+                                        <td class="text-right">
+                                            <a href="{:U('product', ['goods_id'=>$row['goods_id']])}" data-toggle="tooltip" title="货品" class="btn btn-default">
+                                                <i class="">货</i>
                                             </a>
                                         </td>
                                     </tr>

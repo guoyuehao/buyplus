@@ -1,0 +1,35 @@
+<tr id="tr-product-{$product['product_id']}">
+    <volist name="product['optionList']" id="option">
+        <td class="text-left">
+            {$option['option_value']}
+        </td>
+    </volist>
+
+    <td class="text-right">
+        <input type="text" name="product_quantity" id="input-product_quantity-{$product['product_id']}" value="{$product['product_quantity']}" placeholder="商品数量" class="form-control" />
+    </td>
+    <td class="text-right">
+        <select name="price_drift_id" id="select-price_drift_id-{$product['product_id']}" class="form-control">
+            <volist name="priceDriftList" id="priceDrift">
+                <option <if condition="$priceDrift['price_drift_id'] eq $product['price_drift_id']"> selected</if> value="{$priceDrift['price_drift_id']}">{$priceDrift['title']}</option>
+            </volist>
+        </select>
+        <input type="text" name="product_price" id="input-product_price-{$product['product_id']}" value="{$product['product_price']}" placeholder="销售价格" class="form-control" />
+    </td>
+
+    <td class="text-left">
+        <input type="checkbox" class="form-control" id="input-promoted-{$product['product_id']}" value="1" name="promoted" <if condition="$product['promoted']"> checked </if> >
+    </td>
+    <td class="text-left">
+        <input type="checkbox" class="form-control" id="input-enabled-{$product['product_id']}" name="enabled" value="1"<if condition="$product['enabled']"> checked </if>>
+        <input type="hidden" name="product_id" value="{$product['product_id']}" />
+    </td>
+    <td>
+        <button type="button" form="form-product" data-product="{$product['product_id']}" id="input-save-{$product['product_id']}" title="保存" class="btn btn-primary">
+            <i class="fa fa-save"></i>
+        </button>
+        <button type="button" form="form-product" data-product="{$product['product_id']}" id="input-del-{$product['product_id']}" title="删除" class="btn btn-danger">
+            <i class="fa fa-trash"></i>
+        </button>
+    </td>   
+</tr>

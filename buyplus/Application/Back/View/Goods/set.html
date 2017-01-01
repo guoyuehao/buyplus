@@ -277,8 +277,7 @@
 
                             <div class="tab-pane" id="tab-description">
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label" for="input-description">描述</label>
-                                    <div class="col-sm-10">
+                                    <div class="col-sm-12">
                                         <textarea name="description" placeholder="描述" id="input-description" class="form-control">{$data['description']}</textarea>
                                         <if condition="isset($message['errorInfo']['description'])">
                                             <label for="input-description" class="text-danger">{$message['errorInfo']['description']}</label>
@@ -428,7 +427,7 @@
                                         <label class="col-sm-2 control-label" for="input-attribute-{$attribute_merge['attribute_id']}">{$attribute_merge['attribute_title']}</label>
                                         <div class="col-sm-1 text-center">
                                             <label class="control-label">
-                                                <input name="is_option[]" value="{$attribute_merge['attribute_id']}" class="form-control" type="checkbox">
+                                                <input name="is_option[]" value="{$attribute_merge['attribute_id']}" class="form-control" type="checkbox" <if condition="$attribute_merge['attribute_type_title'] neq 'select-multi'">disabled</if><if condition="$attribute_merge['product_option'] eq '1'">checked</if> >
                                             </label>
                                         </div>
                                         <div class="col-sm-9">
@@ -474,6 +473,7 @@
 </block>
 <block name="appendCSS">
     <link rel="stylesheet" href="__PUBLIC__/Back/jqueryFileUpload/css/jquery.fileupload.css">
+    <link rel="stylesheet" href="__PUBLIC__/Back/summernote/summernote.css" type="text/css">
 </block>
 <block name="appendJS">
     <script src="__PUBLIC__/Back/validate/jquery.validate.min.js"></script>
@@ -482,6 +482,7 @@
     <script src="__PUBLIC__/Back/jqueryFileUpload/js/vendor/jquery.ui.widget.js"></script>
     <script src="__PUBLIC__/Back/jqueryFileUpload/js/jquery.iframe-transport.js"></script>
     <script src="__PUBLIC__/Back/jqueryFileUpload/js/jquery.fileupload.js"></script>
+    <script type="text/javascript" src="__PUBLIC__/Back/summernote/summernote.js"></script>
     <script>
         $('.date').datetimepicker({
             pickTime: false,
@@ -572,7 +573,7 @@
     <script>
     $(function(){
         $('#input-type_id').change(function(event) {
-            var url = "{:U('ajax',['operate'=>'getAttrList'])}";
+            var url = '{:U('ajax',['operate'=>'getAttrList'])}';
             var data = {type_id:$(this).val()};
             $.get(url,data,function(res){
                 if(res.error != 0){
@@ -581,9 +582,14 @@
                 }
                 var fieldHtml = '';
                 $.each(res.rows,function(i,row){
+                    console.log(row);
                     fieldHtml += '<div class="form-group">';
                     fieldHtml += '<label class="col-sm-2 control-label" for="input-attribute">' + row.attribute_title + '</label>';
-                    fieldHtml += '<div class="col-sm-1 text-center"><label class="control-label"><input name="is_option[]" value="'+row.attribute_id+'" class="form-control" type="checkbox"></label></div>';
+                    fieldHtml += '<div class="col-sm-1 text-center"><label class="control-label"><input name="is_option[]" value="'+row.attribute_id+'" class="form-control" type="checkbox"';
+                    if(row.attribute_type_title != 'select-multi'){
+                        fieldHtml += ' disabled';
+                    }
+                    fieldHtml += '></label></div>';
                     switch(row.attribute_type_title){
                         case 'text':
                                 fieldHtml += '<div class="col-sm-9"><input name="attribute['+row.attribute_id+']" value="" placeholder="属性值" id="input-attribute-'+row.attribute_id+'" class="form-control" type="text"></div>';
@@ -612,6 +618,37 @@
                 $('#tab-attribute').append(fieldHtml);
 
             },'json');
+        });
+    });
+    </script>
+    <script>
+    $(function(){
+        $('#input-description').summernote({
+            height:300,
+            callbacks: {
+                    onImageUpload: function(files) {
+                        //完成上传
+                        // console.log(files);
+                        var data = new FormData();
+                        data.append('imageAjax', files[0]);
+                        // ajax请求
+                        var url = '{:U('ajax')}';
+                        data.append('operate', 'imageUpload');
+                        $.ajax({
+                            url: url,
+                            data: data,
+                            processData: false,// 不去编码数据 ------- ajax上传文件必要的
+                            contentType: false,// 不去设置主体类型----
+                            type: 'POST',
+                            dataType: 'json',
+                            success: function(resp)
+                            {
+                                // 显示上传的图像
+                                $('#input-description').summernote('insertImage', '__PUBLIC__/Thumb/' + resp.imageAjax.thumbUrl);
+                            }
+                        });
+                    }
+                }
         });
     });
     </script>
