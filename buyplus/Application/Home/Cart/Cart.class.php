@@ -200,7 +200,35 @@ class Cart
     {
         unset($this->wareList[$key]);
     }
+    /**
+     * 会员的登录同步刷新
+     */
+    public function memberRefresh()
+    {
+        // 当前会员可能存在商品
+        $this->wareList;// 有可能存在数据, 从数据库中获取
 
+        // 再判断, cookie中是否存在商品
+        $cookieWareList = cookie('warelist') ? unserialize(cookie('warelist')) : [];
 
+        // 合并数据表中获取的, 与cookie中获取
+        // 遍历cookie中的商品, 判断是否在数据库中存在
+        foreach($cookieWareList as $key=>$ware) {
+            if (isset($this->wareList[$key])) {
+                // 存在过,
+                // 一: 累加数量即可
+//                $this->wareList[$key]['buy_quantity'] += $ware['buy_quantity'];
+                // 二: 取最大数量
+                if($ware['buy_quantity'] > $this->wareList[$key]['buy_quantity']) {
+                    $this->wareList[$key]['buy_quantity'] = $ware['buy_quantity'];
+                }
+                // 三: 保持会员数量(什么都不做即可)
+            } else {
+                // 不存在
+                $this->wareList[$key] = $ware;
+            }
+        }
+
+    }
 
 }

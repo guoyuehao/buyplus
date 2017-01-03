@@ -3,6 +3,7 @@ namespace Home\Controller;
 
 use Think\Controller;
 use Home\Model\MemberModel;
+use Home\Cart\Cart;
 
 class MemberController extends Controller
 {
@@ -23,7 +24,7 @@ class MemberController extends Controller
                 $this->redirect('/login');// 重定向到登录
             } else {
                 // 验证失败, 获取错误信息
-                $this->error('注册失败: ' . $model->getError(), U('/register'));
+                $this->redirect('/register');
             }
 
         } else {
@@ -57,21 +58,71 @@ class MemberController extends Controller
                 $model_mll->login_ip = get_client_ip(1);
                 $model_mll->login_ua = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
                 $model_mll->add();
-
-                // 四: 重定向到会员中心
-                $this->redirect('/center');
+                //同步购物车
+                $cart = Cart::instance();
+                $cart->memberRefresh;
+                if ($successUrl = session('successUrl')) {
+                    session('successUrl',null);
+                    $this->redirect($successUrl['route'],$successUrl['param']);
+                }else{
+                    // 四: 重定向到会员中心
+                    $this->redirect('/center');
+                }
+                
             } else {
                 // 用户非法
-                $this->error('用户信息非法', U('/login'));
+                session('message','帐号或密码错误');
+                $this->redirect('/login');
             }
         } else {
+            $this->assign('message',session('message'));
+            session('message',null);
             $this->display();
         }
     }
-
+    public function logoutAction()
+    {
+        session('member',null);
+        $this->redirect('/');
+    }
 
     public function centerAction()
     {
         echo '会员中心';
     }
+    public function addressListAction()
+    {
+        if(! session('member')){
+            $this->ajaxReturn(['error'=>1,'errorInfo'=>'请先登录']);
+        }
+        $addressList = M('Address')->where(['member_id'=>session('member.member_id')])->select();
+        $this->ajaxReturn(['error'=>0,'data'=>($addressList?$addressList:[])]);
+    }
+     public function childRegionAction()
+    {
+        // 检测会员是否登录
+        if (! session('member')) {
+            // 未登录
+            $this->ajaxReturn(['error'=>1, 'errorInfo'=>'先登录']);
+        }
+
+        $regionList = M('Region')->where(['parent_id'=>I('request.parent_id')])->select();
+        $this->ajaxReturn(['error'=>0, 'data'=>($regionList?$regionList:[])]);
+
+    }
+
+    public function addAddressAction()
+    {
+        if (! session('member')) {
+            $this->ajaxReturn(['error'=>1,'errorInfo'=>'先登录']);
+        }
+        $data = I('post.');
+        $data['member_id'] = session('member.member_id');
+        $data['is_default'] = 1;
+        $address_id = M('Address')->add($data);
+
+        M('Address')->where(['member_id'=>session('member.member_id'),'address_id'=>['neq',$address_id]])->save(['is_default'=>0]);
+        $this->ajaxReturn(['error'=>0,'data'=>M('Address')->where(['member_id'=>session('member.member_id')])->select()]);
+    }
+    
 }

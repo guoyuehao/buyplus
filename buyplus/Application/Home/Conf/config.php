@@ -12,7 +12,11 @@ return array(
 
         'register'  => 'Member/register', // 路由到用户的注册动作
         'login'     => 'Member/login',// 登录
+        'logout'     => 'Member/logout',// 退出登录
         'center'    => 'Member/center',
+        'addressList'   => 'Member/addressList',// 获取会员的收货地址
+        'childRegion' => 'Member/childRegion',// 获取子地区
+        'addAddress'    => 'Member/addAddress',
 
         'category/nestedList' => ['Shop/category',['operate' => 'nestedList']],
         'goods/new' => ['Shop/goods',['operate'=>'new']],
@@ -24,6 +28,9 @@ return array(
         'addToCart' => 'Buy/addToCart',
         'removeFromCart'     => 'Buy/removeFromCart',
         'cartInfo'      => 'Buy/cartInfo',
+        'cart'      => 'Buy/cart',
+        'checkout' => 'Buy/checkout',
+        'shippingList' => 'Buy/shippingList',
 
     ],
     'URL_MODEL' => 2, // URL模式

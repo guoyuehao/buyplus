@@ -133,7 +133,7 @@
                                 <a href="#" class="bds_renren" data-cmd="renren" title="分享到人人网">人人网</a>
                                 <a href="#" class="bds_weixin" data-cmd="weixin" title="分享到微信">微信</a>
                             </div>
-                            <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script>
+                            <!-- <script>window._bd_share_config={"common":{"bdSnsKey":{},"bdText":"","bdMini":"2","bdMiniList":false,"bdPic":"","bdStyle":"0","bdSize":"16"},"share":{"bdSize":16}};with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];</script> -->
                             <!-- Baidu Share END -->
                         </div>
                     </div>
@@ -425,12 +425,13 @@
                 buy_quantity : $('#input-quantity').val()
             };
             $.post(url,data,function(resp){
-                console.log(resp);
+                // console.log(resp);
                 if (resp.error != 0) {
                     console.log(resp.errorInfo);
                     return;
                 };
-                // refreshCart();
+                refreshCart();
+                $(window).scrollTop(10);
                 alert('添加成功');
             },'json');
             evt.preventDefault();

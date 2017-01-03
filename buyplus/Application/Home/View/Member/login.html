@@ -1,4 +1,4 @@
-<extend name="Common/member" />
+<extend name="Common/layout" />
 
 <block name="container">
   <div class="container">
@@ -30,9 +30,12 @@
                 <div class="form-group">
                   <label class="control-label" for="input-password">密码</label>
                   <input type="password" name="password" value="" placeholder="密码" id="input-password" class="form-control" />
-                  <a href="{:U('/forgetPassword')}">忘记密码？</a>
+                  <if condition="$message">
+                    <label for="input-password" class="text-danger">{$message}</label>
+                  </if> 
                 </div>
                 <input type="submit" value="登录" class="btn btn-primary" />
+                <a href="{:U('/forgetPassword')}">忘记密码？</a>
               </form>
             </div>
           </div>
